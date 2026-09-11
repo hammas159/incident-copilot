@@ -139,3 +139,58 @@ src/copilot/
 ## License
 
 MIT
+
+---
+
+## Run it yourself
+
+```bash
+git clone https://github.com/hammas159/incident-copilot
+cd incident-copilot
+
+uv sync --all-groups     # or: pip install -e ".[dev]"
+make test                # 39 tests, no numpy, no services
+```
+
+```python
+from copilot.logs import DrainParser
+from copilot.metrics import Detector
+from copilot.correlate import ChangeEvent, Signal, correlate
+
+# a million log lines -> a few hundred templates
+parser = DrainParser()
+for template in parser.parse(log_lines):
+    print(f"x{template.count}  {template.text}")
+parser.match(new_line)        # None means a shape never seen before
+
+# metrics: robust to the outliers you are looking for
+Detector(threshold=3.0, period=24).detect("qps", hourly_values)
+
+# forty alarms -> one incident with a suspect
+incidents = correlate(signals, changes=[
+    ChangeEvent(at=deploy_time, kind="deploy", description="api v2.3", service="api"),
+])
+incidents[0].summary()
+```
+
+## Problems hit while building this
+
+**A traffic drop to zero was reported as a spike.** On a series that is almost constant,
+the median absolute deviation is zero, so the code took a special branch — and that
+branch returned a fixed positive score, losing the *sign*. An outage arrived labelled
+`direction="high"`. *Fixed* by carrying the sign through the constant-series case, with
+a test asserting a drop is detected as a drop.
+
+**The cleanest possible break in a seasonal pattern was the one case that went
+undetected.** A perfectly regular daily pattern has zero variance at each phase, so the
+seasonal detector hit a divide-by-zero guard and skipped the point entirely — meaning
+the more reliable the pattern, the less able it was to notice the pattern breaking.
+*Fixed* by treating any departure from a zero-variance phase as the signal it obviously
+is.
+
+**Short log lines could never form a template.** The parse tree used the first few
+tokens as branch keys, which for a three-word line consumed the entire line — so
+`service alpha restarted` and `service beta restarted` landed in different leaves and no
+generalisation was possible. *Fixed* by stopping the prefix short of the full line.
+
+All three passed a read-through and failed the first real run.
