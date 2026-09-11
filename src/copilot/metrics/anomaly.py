@@ -31,7 +31,7 @@ class Anomaly:
     index: int
     value: float
     score: float
-    direction: str          # "high" or "low"
+    direction: str  # "high" or "low"
     detector: str
     series: str = ""
     at: float = 0.0
@@ -61,9 +61,14 @@ def detect_outliers(
     values: list[float], *, threshold: float = 3.0, series: str = ""
 ) -> list[Anomaly]:
     return [
-        Anomaly(index=i, value=values[i], score=round(abs(z), 3),
-                direction="high" if z > 0 else "low",
-                detector="robust_z", series=series)
+        Anomaly(
+            index=i,
+            value=values[i],
+            score=round(abs(z), 3),
+            direction="high" if z > 0 else "low",
+            detector="robust_z",
+            series=series,
+        )
         for i, z in enumerate(robust_z_scores(values))
         if abs(z) >= threshold
     ]
@@ -92,15 +97,29 @@ def detect_seasonal(
             # A perfectly regular phase. Any departure is the signal - and
             # skipping here would miss the cleanest possible break.
             if values[i] != med:
-                found.append(Anomaly(index=i, value=values[i], score=10.0,
-                                     direction="high" if values[i] > med else "low",
-                                     detector="seasonal", series=series))
+                found.append(
+                    Anomaly(
+                        index=i,
+                        value=values[i],
+                        score=10.0,
+                        direction="high" if values[i] > med else "low",
+                        detector="seasonal",
+                        series=series,
+                    )
+                )
             continue
         z = (values[i] - med) / (mad * _MAD_TO_SIGMA)
         if abs(z) >= threshold:
-            found.append(Anomaly(index=i, value=values[i], score=round(abs(z), 3),
-                                 direction="high" if z > 0 else "low",
-                                 detector="seasonal", series=series))
+            found.append(
+                Anomaly(
+                    index=i,
+                    value=values[i],
+                    score=round(abs(z), 3),
+                    direction="high" if z > 0 else "low",
+                    detector="seasonal",
+                    series=series,
+                )
+            )
     return found
 
 
@@ -119,15 +138,14 @@ class Detector:
         if self.period:
             seen = {a.index for a in found}
             found += [
-                a for a in detect_seasonal(values, period=self.period,
-                                           threshold=self.threshold, series=series)
+                a
+                for a in detect_seasonal(
+                    values, period=self.period, threshold=self.threshold, series=series
+                )
                 if a.index not in seen
             ]
 
         med = statistics.median(values) if values else 0.0
         if med:
-            found = [
-                a for a in found
-                if abs(a.value - med) / abs(med) >= self.min_relative_change
-            ]
+            found = [a for a in found if abs(a.value - med) / abs(med) >= self.min_relative_change]
         return sorted(found, key=lambda a: a.index)

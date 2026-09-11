@@ -29,7 +29,10 @@ WILDCARD = "<*>"
 # template exploding into thousands of near-identical variants.
 _MASKS: list[tuple[re.Pattern, str]] = [
     (re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}(?::\d+)?\b"), "<IP>"),
-    (re.compile(r"\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b", re.I), "<UUID>"),
+    (
+        re.compile(r"\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b", re.I),
+        "<UUID>",
+    ),
     (re.compile(r"\b0x[0-9a-f]+\b", re.I), "<HEX>"),
     (re.compile(r"\b\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}\S*"), "<TS>"),
     (re.compile(r"\b\d+(?:\.\d+)?(?:ms|s|kb|mb|gb|%)\b", re.I), "<NUM>"),
@@ -63,16 +66,12 @@ class Template:
             return 0.0
         if not tokens:
             return 1.0
-        same = sum(
-            1 for a, b in zip(self.tokens, tokens) if a == b or a == WILDCARD
-        )
+        same = sum(1 for a, b in zip(self.tokens, tokens, strict=False) if a in (b, WILDCARD))
         return same / len(tokens)
 
     def merge(self, tokens: list[str]) -> None:
         """Generalise positions that disagree into wildcards."""
-        self.tokens = [
-            a if a == b else WILDCARD for a, b in zip(self.tokens, tokens)
-        ]
+        self.tokens = [a if a == b else WILDCARD for a, b in zip(self.tokens, tokens, strict=False)]
 
 
 @dataclass

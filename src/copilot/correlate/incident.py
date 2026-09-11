@@ -32,7 +32,7 @@ class ChangeEvent:
 class Signal:
     at: float
     service: str
-    kind: str            # "metric" | "log"
+    kind: str  # "metric" | "log"
     detail: str
     score: float = 0.0
 
@@ -106,7 +106,8 @@ def correlate(
     for incident in incidents:
         start = incident.started_at
         incident.causes = [
-            c for c in (changes or [])
+            c
+            for c in (changes or [])
             # Only changes *before* the onset. A change after it is a response, and
             # presenting it as a cause sends the investigation backwards.
             if start - lookback_seconds <= c.at <= start
@@ -117,13 +118,16 @@ def correlate(
     return incidents
 
 
-def signals_from_anomalies(anomalies: list[Anomaly], *, service: str,
-                           timestamps: list[float] | None = None) -> list[Signal]:
+def signals_from_anomalies(
+    anomalies: list[Anomaly], *, service: str, timestamps: list[float] | None = None
+) -> list[Signal]:
     return [
         Signal(
             at=timestamps[a.index] if timestamps and a.index < len(timestamps) else time.time(),
-            service=service, kind="metric",
-            detail=f"{a.series} {a.direction} ({a.detector})", score=a.score,
+            service=service,
+            kind="metric",
+            detail=f"{a.series} {a.direction} ({a.detector})",
+            score=a.score,
         )
         for a in anomalies
     ]

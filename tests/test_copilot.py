@@ -43,22 +43,26 @@ class TestDrain:
     def test_varying_lines_collapse_to_one_template(self):
         """A million log lines are a few hundred templates. That is the whole point."""
         p = DrainParser()
-        p.parse([
-            "Connection to db-7 failed after 3021ms",
-            "Connection to db-2 failed after 1180ms",
-            "Connection to db-9 failed after 88ms",
-        ])
+        p.parse(
+            [
+                "Connection to db-7 failed after 3021ms",
+                "Connection to db-2 failed after 1180ms",
+                "Connection to db-9 failed after 88ms",
+            ]
+        )
         templates = p.templates()
         assert len(templates) == 1
         assert templates[0].count == 3
 
     def test_genuinely_different_lines_stay_separate(self):
         p = DrainParser()
-        p.parse([
-            "Connection to db-7 failed after 3021ms",
-            "User 4821 logged in from 10.0.0.4",
-            "Cache miss for key user:99:profile",
-        ])
+        p.parse(
+            [
+                "Connection to db-7 failed after 3021ms",
+                "User 4821 logged in from 10.0.0.4",
+                "Cache miss for key user:99:profile",
+            ]
+        )
         assert len(p.templates()) == 3
 
     def test_variable_positions_become_wildcards(self):
@@ -187,8 +191,10 @@ class TestCorrelation:
 
     def test_grouping_is_by_gap_not_fixed_buckets(self):
         """A fixed window splits one incident in two whenever it straddles a boundary."""
-        signals = [Signal(at=1000 + i * 200, service="api", kind="metric", detail=str(i))
-                   for i in range(10)]
+        signals = [
+            Signal(at=1000 + i * 200, service="api", kind="metric", detail=str(i))
+            for i in range(10)
+        ]
         assert len(correlate(signals, window_seconds=300)) == 1
 
     def test_a_preceding_change_is_attached(self):
@@ -205,8 +211,7 @@ class TestCorrelation:
 
     def test_an_unrelated_service_change_is_not_attached(self):
         signals = [Signal(at=2000, service="api", kind="metric", detail="latency")]
-        changes = [ChangeEvent(at=1900, kind="deploy", description="billing v1",
-                               service="billing")]
+        changes = [ChangeEvent(at=1900, kind="deploy", description="billing v1", service="billing")]
         assert correlate(signals, changes)[0].causes == []
 
     def test_causes_are_most_recent_first(self):
@@ -225,13 +230,14 @@ class TestSeverity:
     def test_breadth_outranks_strength(self):
         """One metric at 10 sigma on one service is usually that service. Three
         services moving together is usually infrastructure."""
-        narrow = correlate([Signal(at=1, service="api", kind="metric",
-                                   detail="x", score=10.0)])[0]
-        broad = correlate([
-            Signal(at=1, service="api", kind="metric", detail="x", score=3.1),
-            Signal(at=2, service="db", kind="metric", detail="y", score=3.2),
-            Signal(at=3, service="cache", kind="metric", detail="z", score=3.3),
-        ])[0]
+        narrow = correlate([Signal(at=1, service="api", kind="metric", detail="x", score=10.0)])[0]
+        broad = correlate(
+            [
+                Signal(at=1, service="api", kind="metric", detail="x", score=3.1),
+                Signal(at=2, service="db", kind="metric", detail="y", score=3.2),
+                Signal(at=3, service="cache", kind="metric", detail="z", score=3.3),
+            ]
+        )[0]
         assert narrow.severity == "high"
         assert broad.severity == "critical"
 
