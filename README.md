@@ -1,4 +1,4 @@
-# incident-copilot (FastAPI, Pydantic)
+# incident-copilot (Python, optional Streamlit demo)
 
 [![ci](https://github.com/hammas159/incident-copilot/actions/workflows/ci.yml/badge.svg)](https://github.com/hammas159/incident-copilot/actions/workflows/ci.yml)
 ![python](https://img.shields.io/badge/python-3.12-blue)
@@ -99,7 +99,7 @@ Written up because they are the useful part, and all three would have survived r
 
 ## Tests
 
-**39 tests. No numpy, no services, no waiting for a real incident.**
+**43 tests (39 core + 4 for the optional Streamlit demo). No numpy, no services, no waiting for a real incident.**
 
 ```bash
 make test
@@ -149,7 +149,7 @@ git clone https://github.com/hammas159/incident-copilot
 cd incident-copilot
 
 uv sync --all-groups     # or: pip install -e ".[dev]"
-make test                # 39 tests, no numpy, no services
+make test                # 43 tests, no numpy, no services
 ```
 
 ```python
@@ -173,6 +173,22 @@ incidents = correlate(signals, changes=[
 incidents[0].summary()
 ```
 
+### The demo dashboard (`ui` dependency group)
+
+`pyproject.toml` has declared a `streamlit` + `pandas` `ui` group since the repo's
+first commit; this is the actual demo that group was for. Three tabs, one per module:
+paste log lines and extract Drain templates (then test whether a new line matches an
+existing shape), run robust anomaly detection against a latency spike / traffic drop /
+seasonal-pattern break, and simulate a correlated multi-service incident with a named,
+checkable deploy cause.
+
+```bash
+uv sync --group ui        # or: pip install streamlit pandas
+streamlit run ui/app.py
+```
+
+Local only, in-memory demo data generated on load — not a deployed service.
+
 ## Problems hit while building this
 
 **A traffic drop to zero was reported as a spike.** On a series that is almost constant,
@@ -194,3 +210,11 @@ tokens as branch keys, which for a three-word line consumed the entire line — 
 generalisation was possible. *Fixed* by stopping the prefix short of the full line.
 
 All three passed a read-through and failed the first real run.
+
+**`fastapi`, `uvicorn`, `pydantic`, `rich`, and `typer` were declared as core
+dependencies since the repo's first commit and imported nowhere** — grepped `src/` and
+`tests/` for every one of them to be sure before touching anything. There was also an
+empty `src/copilot/api/` folder, presumably scaffolding for a service that was never
+built. *Fixed* by removing all five from `dependencies` and deleting the empty folder —
+the actual gap was the declared-but-unbuilt `ui` Streamlit demo (see above), not a REST
+API this project never needed in the first place.
