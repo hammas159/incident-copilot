@@ -1,20 +1,43 @@
-# incident-copilot (Python, optional Streamlit demo)
+<h1 align="center">incident-copilot</h1>
+<p align="center"><i>A million log lines and forty alarms reduced to one incident with a suspect</i></p>
 
-[![ci](https://github.com/hammas159/incident-copilot/actions/workflows/ci.yml/badge.svg)](https://github.com/hammas159/incident-copilot/actions/workflows/ci.yml)
-![python](https://img.shields.io/badge/python-3.12-blue)
-![dependencies](https://img.shields.io/badge/core-no%20numpy-success)
-![license](https://img.shields.io/badge/license-MIT-green)
+<p align="center">
+  <a href="#logs-a-million-lines-are-a-few-hundred-templates">Logs</a> &middot;
+  <a href="#metrics-the-mean-and-standard-deviation-hide-the-thing-you-are-looking-for">Metrics</a> &middot;
+  <a href="#correlation-one-deploy-one-incident-one-page">Correlation</a> &middot;
+  <a href="#three-bugs-the-tests-caught-on-first-run">Three bugs</a> &middot;
+  <a href="#limits">Limits</a> &middot;
+  <a href="#problems-hit-while-building-this">Problems hit</a>
+</p>
 
-**AIOps: a million log lines and forty simultaneous alarms reduced to one incident
-with a suspect.**
-
-Log template extraction, robust anomaly detection, temporal correlation, and change
-attribution — all implemented from the algorithms rather than wrapped, because the
-parameters that matter are the ones you have to tune for your own systems.
+<p align="center">
+  <a href="https://github.com/hammas159/incident-copilot/actions/workflows/ci.yml"><img src="https://github.com/hammas159/incident-copilot/actions/workflows/ci.yml/badge.svg" alt="ci"></a>
+  <img src="https://img.shields.io/badge/python-3.11%2B-blue" alt="python">
+  <img src="https://img.shields.io/badge/algorithms-implemented%2C%20not%20wrapped-success" alt="impl">
+  <img src="https://img.shields.io/badge/stack-Streamlit%20(optional%20demo)-orange" alt="stack">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="license"></a>
+</p>
 
 ---
 
 ## Logs: a million lines are a few hundred templates
+
+```mermaid
+flowchart LR
+    L["1,000,000 log lines"] --> T["template extraction<br/>a few hundred templates"]
+    M["metric streams"] --> AD["robust anomaly detection<br/>median and MAD, not mean and sd"]
+    T --> C["temporal correlation"]
+    AD --> C
+    D["deploys and changes"] --> C
+    C --> I["ONE incident<br/>with a suspect"]
+
+    style I fill:#2563eb,color:#fff
+```
+
+Every algorithm here is **implemented rather than wrapped**, because the parameters that
+matter are the ones you have to tune for your own systems - and you cannot tune what you
+cannot see.
+
 
 ```
 Connection to db-7 failed after 3021ms
@@ -135,6 +158,10 @@ src/copilot/
 - Seasonality handles one period. Daily-and-weekly together needs decomposition.
 - No LLM in the core. Narrative generation belongs on top of these signals, not inside
   them — the detection has to be explainable on its own.
+
+## Keywords
+
+AIOps &middot; incident response &middot; log analysis &middot; log template extraction &middot; Drain &middot; anomaly detection &middot; MAD &middot; robust statistics &middot; alert correlation &middot; root cause analysis &middot; change attribution &middot; observability &middot; SRE &middot; on-call &middot; noise reduction &middot; time series
 
 ## License
 
