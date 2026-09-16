@@ -248,5 +248,6 @@ dependencies since the repo's first commit and imported nowhere** — grepped `s
 `tests/` for every one of them to be sure before touching anything. There was also an
 empty `src/copilot/api/` folder, presumably scaffolding for a service that was never
 built. *Fixed* by removing all five from `dependencies` and deleting the empty folder —
-the actual gap was the declared-but-unbuilt `ui` Streamlit demo (see above), not a REST
+the actual gap was the declared-but-unbuilt `ui` Streamlit demo, since replaced by
+`demo.py`, not a REST
 API this project never needed in the first place.
