@@ -14,7 +14,6 @@
   <a href="https://github.com/hammas159/incident-copilot/actions/workflows/ci.yml"><img src="https://github.com/hammas159/incident-copilot/actions/workflows/ci.yml/badge.svg" alt="ci"></a>
   <img src="https://img.shields.io/badge/python-3.11%2B-blue" alt="python">
   <img src="https://img.shields.io/badge/algorithms-implemented%2C%20not%20wrapped-success" alt="impl">
-  <img src="https://img.shields.io/badge/stack-Streamlit%20(optional%20demo)-orange" alt="stack">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="license"></a>
 </p>
 
@@ -122,7 +121,7 @@ Written up because they are the useful part, and all three would have survived r
 
 ## Tests
 
-**43 tests (39 core + 4 for the optional Streamlit demo). No numpy, no services, no waiting for a real incident.**
+**39 tests. No numpy, no services, no waiting for a real incident.**
 
 ```bash
 make test
@@ -145,6 +144,7 @@ src/copilot/
   logs/drain.py           fixed-depth parse tree, masking, template matching
   metrics/anomaly.py      robust z-score, seasonal comparison, the combined detector
   correlate/incident.py   grouping, change attribution, severity
+demo.py                   40 alerts in, one incident out
 ```
 
 ## Limits
@@ -200,21 +200,26 @@ incidents = correlate(signals, changes=[
 incidents[0].summary()
 ```
 
-### The demo dashboard (`ui` dependency group)
+---
 
-`pyproject.toml` has declared a `streamlit` + `pandas` `ui` group since the repo's
-first commit; this is the actual demo that group was for. Three tabs, one per module:
-paste log lines and extract Drain templates (then test whether a new line matches an
-existing shape), run robust anomaly detection against a latency spike / traffic drop /
-seasonal-pattern break, and simulate a correlated multi-service incident with a named,
-checkable deploy cause.
+## Input
 
-```bash
-uv sync --group ui        # or: pip install streamlit pandas
-streamlit run ui/app.py
-```
+A synthetic alert storm with known ground truth: one bad deploy that cascades across
+three services, buried in 34 unrelated background alerts. The correlator is told none
+of this.
 
-Local only, in-memory demo data generated on load — not a deployed service.
+![input](docs/images/input.png)
+
+## Output
+
+`python demo.py`
+
+![output](docs/images/output.png)
+
+*The 34 singletons matter as much as the incident. Correlation here is transitive within
+`window_seconds`, so an alert stream arriving steadily faster than the window collapses
+into one incident regardless of service — a real property worth knowing before trusting
+any "40 alarms became 1" claim, including this one.*
 
 ## Problems hit while building this
 
