@@ -5,6 +5,7 @@
 Builds a realistic alert storm -- one bad deploy that cascades across three
 services -- and runs the real correlator over it. No network, no model.
 """
+
 import random
 import sys
 
@@ -62,12 +63,16 @@ grouped = [i for i in incidents if len(i.signals) > 1]
 singletons = [i for i in incidents if len(i.signals) == 1]
 
 print("OUTPUT")
-print(f"   {len(signals)} alerts -> {len(grouped)} correlated incident, "
-      f"{len(singletons)} unrelated singletons")
+print(
+    f"   {len(signals)} alerts -> {len(grouped)} correlated incident, "
+    f"{len(singletons)} unrelated singletons"
+)
 print()
 for inc in sorted(grouped, key=lambda i: -len(i.signals)):
-    print(f"   severity={inc.severity}   {len(inc.signals)} alerts   "
-          f"services={', '.join(inc.services)}")
+    print(
+        f"   severity={inc.severity}   {len(inc.signals)} alerts   "
+        f"services={', '.join(inc.services)}"
+    )
     for s in sorted(inc.signals, key=lambda x: x.at):
         print(f"      +{int(s.at - T):>4}s  {s.service:9} {s.kind:6} {s.detail}")
     for c in inc.causes:
