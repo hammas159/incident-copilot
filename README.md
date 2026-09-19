@@ -1,4 +1,4 @@
-<h1 align="center">incident-copilot</h1>
+<h1 align="center">incident-copilot (Python · Drain templates · robust z-score (MAD))</h1>
 <p align="center"><i>A million log lines and forty alarms reduced to one incident with a suspect</i></p>
 
 <p align="center">
